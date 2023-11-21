@@ -2,6 +2,7 @@ import csv
 import os.path
 import string
 from collections import Counter
+import json
 
 class FileAnalyzer:                  # create class
 
@@ -82,5 +83,45 @@ class FileAnalyzer:                  # create class
 
         print('File successfully created and all information is saved')         # show this message
 
-file_analyzer = FileAnalyzer(r'C:\Users\Nastassia_Svirydava\PycharmProjects\Task1\nn.txt')       # create object with class call
-file_analyzer.write_to_files()                                                                   # call write fo files function
+# file_analyzer = FileAnalyzer(r'C:\Users\Nastassia_Svirydava\PycharmProjects\Task1\nn.txt')       # create object with class call
+# file_analyzer.write_to_files()                                                                   # call write fo files function
+
+class JsonFileWriter(FileAnalyzer):                         # create child class for work with JSON
+
+    def __init__(self, file_path, json_file_path):          # create function that initializes an instance of the class with a file_path attribute from parent class and file to the json output file
+        super().__init__(file_path)                         # call methods from parent class and initializing file_path
+        self.json_file_path = json_file_path                # create object to store file_path for output json
+
+    def write_to_files(self):                               # create function for save results to the json
+        count_words_result = self.count_words()             # create object to store count_words output
+        count_letters_result = self.count_letters()         # create object to store count_letter output
+
+        if not count_words_result or not count_letters_result:                  # check that there are no any outputs
+            print("No data to write. You can try again with another path")      # show this messages
+            return                                                              # end function
+
+        json_data = {                                       # create a dictionary to store the results
+            'word_count_result': self.count_words(),        # output from the function count_words() from parent class
+            'count_letters_result': self.count_letters()    # output from the function count_letters() from parent class
+        }
+
+        try:                                                                    # try to check file existence
+            with open(self.json_file_path, 'w') as json_file:                   # open json file to write result
+                json.dump(json_data, json_file, indent=2)                       # write json_data to the json_file with 2 spaces indent
+            print(f'Data about successfully written to {self.json_file_path}')  # show this message
+        except FileNotFoundError:                                               # if there is an exception about abstance of the file
+            print(f'Error: File not found - {self.json_file_path}')             # show this message
+
+    def remove_source_file(self):                                       # create function for remove input file
+        try:                                                            # try to check that file is exists
+            if os.stat(self.file_path).st_size == 0:                    # if file is empty
+                print('File removal was failed! File is empty!')        # show this message
+            else:                                                       # if file is not empty
+                os.remove(self.file_path)                               # delete this file
+                print(f'Source file removed: {self.file_path}')         # show this message
+        except FileNotFoundError:                                       # if there is no such file
+            print(f'File not found: {self.file_path}')                  # show this message
+
+file_analyzer_with_json = JsonFileWriter(r'C:\Users\Nastassia_Svirydava\PycharmProjects\Task1\nn3.txt', 'results2.json') # create object with class call
+file_analyzer_with_json.write_to_files()                # call write fo files function
+file_analyzer_with_json.remove_source_file()            # call remove source file function
